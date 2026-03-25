@@ -28,6 +28,7 @@ import {
   isEventFromForeignProject,
   loadSessions as loadSessionsUtil,
   flushPendingSessionRefresh as flushPendingSessionRefreshUtil,
+  toRelativeWorkspacePath,
   type SessionRefreshContext,
 } from "./kilo-provider-utils"
 import { MarketplaceService } from "./services/marketplace"
@@ -2470,9 +2471,9 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
         if (tab.input instanceof vscode.TabInputText) {
           const uri = tab.input.uri
           if (uri.scheme === "file") {
-            const rel = path.relative(dir, uri.fsPath)
-            if (!rel.startsWith("..") && controller.validateAccess(uri.fsPath)) {
-              result.add(rel.replaceAll("\\", "/"))
+            const rel = toRelativeWorkspacePath(dir, uri.fsPath)
+            if (rel && controller.validateAccess(uri.fsPath)) {
+              result.add(rel)
             }
           }
         }
@@ -2501,14 +2502,7 @@ export class KiloProvider implements vscode.WebviewViewProvider, TelemetryProper
     const controller = await this.getIgnoreController(workspaceDir)
 
     const toRelative = (fsPath: string): string | undefined => {
-      if (!workspaceDir) {
-        return undefined
-      }
-      const relative = path.relative(workspaceDir, fsPath)
-      if (relative.startsWith("..")) {
-        return undefined
-      }
-      return relative
+      return toRelativeWorkspacePath(workspaceDir, fsPath)
     }
 
     // Visible files (capped to avoid bloating context, filtered through .kilocodeignore)

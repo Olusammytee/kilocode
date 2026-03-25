@@ -7,6 +7,7 @@ import {
   mapSSEEventToWebviewMessage,
   isEventFromForeignProject,
   mapCloudSessionMessageToWebviewMessage,
+  toRelativeWorkspacePath,
   type ProviderInfo,
 } from "../../src/kilo-provider-utils"
 import type { CloudSessionMessage } from "../../src/services/cli-backend/types"
@@ -194,6 +195,28 @@ describe("buildSettingPath", () => {
     const { section, leaf } = buildSettingPath("foo..bar")
     expect(leaf).toBe("bar")
     expect(section).toBe("foo.")
+  })
+})
+
+describe("toRelativeWorkspacePath", () => {
+  it("returns a normalized relative path for files inside a POSIX workspace", () => {
+    expect(toRelativeWorkspacePath("/workspace", "/workspace/src/app.ts")).toBe("src/app.ts")
+  })
+
+  it("normalizes Windows separators for files inside the workspace", () => {
+    expect(toRelativeWorkspacePath("C:\\workspace", "C:\\workspace\\src\\app.ts")).toBe("src/app.ts")
+  })
+
+  it("rejects files outside the workspace on the same drive", () => {
+    expect(toRelativeWorkspacePath("C:\\workspace", "C:\\other\\app.ts")).toBeUndefined()
+  })
+
+  it("rejects Windows cross-drive paths when relative() returns an absolute path", () => {
+    expect(toRelativeWorkspacePath("C:\\workspace", "D:\\tabs\\active.ts")).toBeUndefined()
+  })
+
+  it("returns undefined when the workspace directory is missing", () => {
+    expect(toRelativeWorkspacePath(undefined, "/workspace/src/app.ts")).toBeUndefined()
   })
 })
 

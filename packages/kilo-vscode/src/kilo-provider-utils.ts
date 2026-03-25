@@ -1,3 +1,4 @@
+import * as path from "path"
 import type { Session, Agent, Event, ProviderListResponse } from "@kilocode/sdk/v2/client"
 import type { CloudSessionMessage } from "./services/cli-backend/types"
 
@@ -84,6 +85,28 @@ export function filterVisibleAgents(agents: Agent[]): { visible: Agent[]; defaul
   const visible = agents.filter((a) => a.mode !== "subagent" && !a.hidden)
   const defaultAgent = visible.length > 0 ? visible[0]!.name : "code"
   return { visible, defaultAgent }
+}
+
+function usesWindowsPaths(value: string): boolean {
+  return /^[A-Za-z]:[\\/]/.test(value) || value.startsWith("\\\\")
+}
+
+/**
+ * Convert an absolute filesystem path into a workspace-relative path.
+ * Returns undefined for files outside the workspace, including Windows paths
+ * on a different drive where path.relative() produces another absolute path.
+ */
+export function toRelativeWorkspacePath(workspaceDir: string | undefined, fsPath: string): string | undefined {
+  if (!workspaceDir) return undefined
+
+  const pathApi = usesWindowsPaths(workspaceDir) || usesWindowsPaths(fsPath) ? path.win32 : path.posix
+  const relative = pathApi.relative(workspaceDir, fsPath)
+
+  if (!relative || relative.startsWith("..") || pathApi.isAbsolute(relative)) {
+    return undefined
+  }
+
+  return relative.replaceAll("\\", "/")
 }
 
 /**
