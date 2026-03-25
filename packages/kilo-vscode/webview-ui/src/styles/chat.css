@@ -2072,6 +2072,29 @@
 }
 
 /* Session List Items */
+.session-list {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.session-list [data-component="list"] {
+  flex: 1;
+  min-height: 0;
+}
+
+.session-list [data-slot="list-scroll"] {
+  flex: 1;
+  min-height: 0;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    display: block;
+    width: 8px;
+  }
+}
+
 .session-list [data-slot="list-item-title"] {
   flex: 1;
   min-width: 0;
