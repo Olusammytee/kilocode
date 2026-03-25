@@ -637,6 +637,7 @@ export const PromptInput: Component<PromptInputProps> = (props) => {
                 <div
                   class="file-mention-item"
                   classList={{ "file-mention-item--active": index() === mention.mentionIndex() }}
+                  title={path}
                   onMouseDown={(e) => {
                     e.preventDefault()
                     if (textareaRef) mention.selectFile(path, textareaRef, setText, adjustHeight)
